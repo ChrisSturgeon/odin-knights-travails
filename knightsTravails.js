@@ -1,35 +1,3 @@
-class Queue {
-  constructor() {
-    this.items = [];
-  }
-
-  // Adds element to the end of the queue array
-  enqueue = function (element) {
-    this.items.push(element);
-  };
-
-  // removes AND returns the first item in the queue array or underflow if empty
-  dequeue() {
-    if (this.isEmpty()) {
-      return 'Underflow';
-    }
-    return this.items.shift();
-  }
-
-  // Returns the front element of the queue
-  front() {
-    if (this.isEmpty()) {
-      return 'No elements in queue';
-    }
-    return this.items[0];
-  }
-
-  // Returns true is the items array is empty
-  isEmpty() {
-    return this.items.length == 0;
-  }
-}
-
 class Board {
   constructor() {
     this.squaresMap = new Map();
@@ -53,7 +21,7 @@ class Board {
         const xCoord = coords[0] + offset[0];
         const yCoord = coords[1] + offset[1];
         if (xCoord >= 0 && xCoord <= 7 && yCoord >= 0 && yCoord <= 7) {
-          return [xCoord, yCoord];
+          return `${xCoord},${yCoord}`;
         }
       })
       .filter((move) => move);
@@ -82,18 +50,23 @@ class Board {
   };
 
   findRoute = function (start, finish) {
-    const startString = `${start[0]},${start[1]}`;
-
     const visitedSquares = {};
-    const queue = new Queue();
+    const queue = [];
 
-    visitedSquares[startString] = true;
-    queue.enqueue(startString);
+    visitedSquares[start] = true;
+    queue.push(start);
     console.log(visitedSquares);
 
-    while (!queue.isEmpty()) {
-      const currentSquare = queue.dequeue();
+    while (queue.length > 0) {
+      const currentSquare = queue.shift();
       console.log(currentSquare);
+      // console.log(queue.items.length);
+
+      if (currentSquare === finish) {
+        console.log('Found you!');
+        console.log(visitedSquares);
+        break;
+      }
 
       const movesList = this.squaresMap.get(currentSquare);
 
@@ -102,13 +75,14 @@ class Board {
 
         if (!visitedSquares[nextMove]) {
           visitedSquares[nextMove] = true;
-          const queueString = `${nextMove[0]},${nextMove[1]}`;
-          queue.enqueue(queueString);
+          const queueString = nextMove;
+          queue.push(queueString);
         }
       }
     }
 
-    console.log(queue);
+    console.log(visitedSquares);
+    console.log(this.steps);
   };
 }
 
@@ -117,4 +91,4 @@ const myBoard = new Board();
 myBoard.makeSquares();
 myBoard.makeMoves();
 console.log(myBoard.squaresMap);
-myBoard.findRoute([2, 1], [4, 5]);
+myBoard.findRoute('3,1', '2,2');
