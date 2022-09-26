@@ -1,6 +1,7 @@
 class Board {
-  constructor() {
+  constructor(size = 8) {
     this.squaresMap = new Map();
+    this.size = size;
   }
 
   // Returns legal moves as array for given board coordinates
@@ -20,7 +21,12 @@ class Board {
       .map((offset) => {
         const xCoord = coords[0] + offset[0];
         const yCoord = coords[1] + offset[1];
-        if (xCoord >= 0 && xCoord <= 7 && yCoord >= 0 && yCoord <= 7) {
+        if (
+          xCoord >= 0 &&
+          xCoord <= this.size - 1 &&
+          yCoord >= 0 &&
+          yCoord <= this.size - 1
+        ) {
           return `${xCoord},${yCoord}`;
         }
       })
@@ -29,10 +35,21 @@ class Board {
     return moves;
   };
 
+  // Console logs the given path
+  printPath = function (path) {
+    console.log(`Shortest route from ${path[0]} to ${path[path.length - 1]}:`);
+    let resultString = '';
+    for (let i = 0; i < path.length - 1; i += 1) {
+      resultString += ` ${path[i]} =>`;
+    }
+    resultString += ` ${path[path.length - 1]}`;
+    console.log(resultString);
+  };
+
   // Fills squares map with keys for each board square and assigns empty array as key value
-  makeSquares = function (size = 8) {
-    for (let x = 0; x < size; x += 1) {
-      for (let y = 0; y < size; y += 1) {
+  makeSquares = function () {
+    for (let x = 0; x < this.size; x += 1) {
+      for (let y = 0; y < this.size; y += 1) {
         this.squaresMap.set(`${[x, y]}`, []);
       }
     }
@@ -40,7 +57,7 @@ class Board {
 
   // Assigns viable knight-moves to moves array for each board square
   makeMoves = function () {
-    for (let [key, value] of this.squaresMap) {
+    for (let [key] of this.squaresMap) {
       let [x, y] = key.split(',');
       x = parseInt(x);
       y = parseInt(y);
@@ -49,46 +66,45 @@ class Board {
     }
   };
 
-  findRoute = function (start, finish) {
-    const visitedSquares = {};
+  // Passses the first encountered path from bread-first-search of board graph to print function
+  shortestPath = function (start, finish) {
+    const paths = [];
+    const visitedSquares = new Set();
     const queue = [];
-
+    queue.push([start, [start]]);
     visitedSquares[start] = true;
-    queue.push(start);
-    console.log(visitedSquares);
 
     while (queue.length > 0) {
-      const currentSquare = queue.shift();
-      console.log(currentSquare);
-      // console.log(queue.items.length);
+      let [current, path] = queue.shift();
+      visitedSquares[current] = true;
+      visitedSquares.add(current);
 
-      if (currentSquare === finish) {
-        console.log('Found you!');
-        console.log(visitedSquares);
+      if (current === finish) {
+        paths.push(path);
         break;
       }
 
-      const movesList = this.squaresMap.get(currentSquare);
+      const possibleMoves = this.squaresMap.get(current);
 
-      for (let i in movesList) {
-        let nextMove = movesList[i];
-
-        if (!visitedSquares[nextMove]) {
-          visitedSquares[nextMove] = true;
-          const queueString = nextMove;
-          queue.push(queueString);
+      for (let move of possibleMoves) {
+        if (!visitedSquares.has(move)) {
+          queue.push([move, [...path, move]]);
         }
       }
     }
 
-    console.log(visitedSquares);
-    console.log(this.steps);
+    this.printPath(paths[0]);
   };
 }
 
-const myBoard = new Board();
+// Creates board and logs example routes
+function driver() {
+  const myBoard = new Board();
+  myBoard.makeSquares();
+  myBoard.makeMoves();
+  myBoard.shortestPath('0,0', '2,1');
+  myBoard.shortestPath('5,5', '4,2');
+  myBoard.shortestPath('7,7', '6,7');
+}
 
-myBoard.makeSquares();
-myBoard.makeMoves();
-console.log(myBoard.squaresMap);
-myBoard.findRoute('3,1', '2,2');
+driver();
